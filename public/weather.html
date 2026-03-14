@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #weather { margin: 20px; }
+        .forecast { display: flex; flex-wrap: wrap; }
+        .day { margin: 10px; padding: 20px; border: 1px solid #ccc; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div id="weather">
+        <h1>Weather Dashboard</h1>
+        <input type="text" id="city" placeholder="Enter city">
+        <button id="searchBtn">Search</button>
+        <div id="currentWeather"></div>
+        <div class="forecast" id="forecast"></div>
+    </div>
+
+    <script>
+        const apiKey = 'YOUR_API_KEY_HERE';
+        const searchBtn = document.getElementById('searchBtn');
+        const cityInput = document.getElementById('city');
+        const currentWeatherDiv = document.getElementById('currentWeather');
+        const forecastDiv = document.getElementById('forecast');
+
+        searchBtn.addEventListener('click', () => {
+            const city = cityInput.value;
+            getWeatherData(city);
+        });
+
+        async function getWeatherData(city) {
+            try {
+                const currentWeatherResponse = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+                const currentWeather = await currentWeatherResponse.json();
+                displayCurrentWeather(currentWeather);
+
+                const forecastResponse = await fetch(`https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`);
+                const forecast = await forecastResponse.json();
+                displayForecast(forecast);
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+            }
+        }
+
+        function displayCurrentWeather(data) {
+            const { name, main, wind, weather } = data;
+            currentWeatherDiv.innerHTML = `<h2>Current Weather in ${name}</h2>\n` +
+                `<p>Temperature: ${main.temp} °C</p>\n` +
+                `<p>Humidity: ${main.humidity}%</p>\n` +
+                `<p>Wind Speed: ${wind.speed} m/s</p>\n` +
+                `<p>Weather: ${weather[0].description} <img src='http://openweathermap.org/img/wn/${weather[0].icon}.png'></p>`;
+        }
+
+        function displayForecast(data) {
+            forecastDiv.innerHTML = '<h2>5-Day Forecast</h2>';
+            data.list.forEach(entry => {
+                const date = new Date(entry.dt * 1000);
+                const day = date.toLocaleDateString();
+                forecastDiv.innerHTML += `<div class='day'>\n` +
+                    `<p>${day}</p>\n` +
+                    `<p>Temperature: ${entry.main.temp} °C</p>\n` +
+                    `<p>Weather: ${entry.weather[0].description} <img src='http://openweathermap.org/img/wn/${entry.weather[0].icon}.png'></p>\n` +
+                    `</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
